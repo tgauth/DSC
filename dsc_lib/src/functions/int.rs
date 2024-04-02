@@ -4,6 +4,7 @@
 use crate::DscError;
 use crate::configure::context::Context;
 use crate::functions::AcceptedArgKind;
+use num_traits::cast::NumCast;
 use serde_json::Value;
 use super::Function;
 
@@ -28,9 +29,11 @@ impl Function for Int {
         let value: i64;
         if arg.is_string() {
             let input = arg.as_str().ok_or(DscError::Function("int".to_string(), "invalid input string".to_string()))?;
-            value = input.parse::<i64>().map_err(|_| DscError::Function("int".to_string(), "unable to parse string to int".to_string()))?;
+            let result = input.parse::<f64>().map_err(|_| DscError::Function("int".to_string(), "unable to parse string to int".to_string()))?;
+            value = NumCast::from(result).ok_or(DscError::Parser("unable to cast to int".to_string()))?;
         } else if arg.is_number() {
-            value = arg.as_i64().ok_or(DscError::Function("int".to_string(), "unable to parse number to int".to_string()))?;
+            let result = arg.as_f64().ok_or(DscError::Function("int".to_string(), "unable to parse number to int".to_string()))?;
+            value = NumCast::from(result).ok_or(DscError::Parser("unable to cast to int".to_string()))?;
         } else {
             return Err(DscError::Function("int".to_string(), "Invalid argument type".to_string()));
         }
@@ -55,6 +58,22 @@ mod tests {
         let mut parser = Statement::new().unwrap();
         let result = parser.parse_and_execute("[int(123)]", &Context::new()).unwrap();
         assert_eq!(result, 123);
+    }
+
+    #[test]
+    fn decimal() {
+        println!("in the int decimal test");
+        let mut parser = Statement::new().unwrap();
+        let result = parser.parse_and_execute("[int(4.0)]", &Context::new()).unwrap();
+        assert_eq!(result, 4);
+    }
+
+    #[test]
+    fn decimal_string() {
+        println!("in the int decimal string test");
+        let mut parser = Statement::new().unwrap();
+        let result = parser.parse_and_execute("[int('4.0')]", &Context::new()).unwrap();
+        assert_eq!(result, 4);
     }
 
     #[test]

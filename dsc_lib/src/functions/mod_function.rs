@@ -4,7 +4,8 @@
 use crate::DscError;
 use crate::configure::context::Context;
 use crate::functions::{AcceptedArgKind, Function};
-use serde_json::Value;
+use num_traits::cast::NumCast;
+use serde_json::{Number, Value};
 use tracing::debug;
 
 #[derive(Debug, Default)]
@@ -25,11 +26,18 @@ impl Function for Mod {
 
     fn invoke(&self, args: &[Value], _context: &Context) -> Result<Value, DscError> {
         debug!("mod function");
-        if let (Some(arg1), Some(arg2)) = (args[0].as_i64(), args[1].as_i64()) {
-            if arg2 == 0 {
-                return Err(DscError::Parser("Cannot divide by zero".to_string()));
+        if let (Some(arg1), Some(arg2)) = (args[0].as_f64(), args[1].as_f64()) {
+            let i64_max: f64 = NumCast::from(i64::MAX).ok_or(DscError::Parser("Failed to convert from int to float".to_string()))?;
+            if arg1 > i64_max || arg2 > i64_max {
+                return Err(DscError::Parser("Mod input overflow".to_string()));
             }
-            Ok(Value::Number((arg1 % arg2).into()))
+            let val1: i64 = NumCast::from(arg1).ok_or(DscError::Parser("Invalid input".to_string()))?;
+            let val2 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
+            if let Some(value) = val1.checked_rem(val2) {
+                Ok(Value::Number(Number::from(value)))
+            } else {
+                Err(DscError::Parser("Division for mod results in overflow".to_string()))
+            }
         } else {
             Err(DscError::Parser("Invalid argument(s)".to_string()))
         }
@@ -73,7 +81,7 @@ mod tests {
     fn overflow_input() {
         let mut parser = Statement::new().unwrap();
         // max value for i64 is 2^63 -1 (or 9,223,372,036,854,775,807)
-        let result = parser.parse_and_execute("[mod(9223372036854775808, 2)]", &Context::new());
+        let result = parser.parse_and_execute("[mod(9223372036854785808, 2)]", &Context::new());
         assert!(result.is_err());
     }
 }

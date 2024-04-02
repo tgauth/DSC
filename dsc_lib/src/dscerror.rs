@@ -32,6 +32,9 @@ pub enum DscError {
     #[error("Function integer argument conversion error: {0}")]
     IntegerConversion(#[from] std::num::ParseIntError),
 
+    #[error("Function float argument conversion error: {0}")]
+    FloatConversion(#[from] std::num::ParseFloatError),
+
     #[error("Invalid configuration:\n{0}")]
     InvalidConfiguration(String),
 

@@ -86,7 +86,18 @@ fn convert_args_node(statement_bytes: &[u8], args: &Option<Node>) -> Result<Opti
             },
             "number" => {
                 let value = arg.utf8_text(statement_bytes)?;
-                result.push(FunctionArg::Value(Value::Number(Number::from(value.parse::<i32>()?))));
+                match value.parse::<i64>() {
+                    Ok(value) => {
+                        result.push(FunctionArg::Value(Value::Number(Number::from(value))));
+                    },
+                    Err(_) => match value.parse::<f64>() {
+                        Ok(value) => {
+                            let number = Number::from_f64(value).ok_or(DscError::Parser(format!("Unable to parse number '{value}'")))?;
+                            result.push(FunctionArg::Value(Value::Number(number)));
+                        },
+                        Err(_) => return Err(DscError::Parser(format!("Unable to parse number '{value}'"))),
+                    }
+                };
             },
             "boolean" => {
                 let value = arg.utf8_text(statement_bytes)?;
