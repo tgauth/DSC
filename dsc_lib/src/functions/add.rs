@@ -82,7 +82,6 @@ mod tests {
     fn overflow_input() {
         let mut parser = Statement::new().unwrap();
         let result = parser.parse_and_execute("[add(9223372036854775808, 0)]", &Context::new());
-        println!("output {:?}", result);
         assert!(result.is_err());
     }
 }
