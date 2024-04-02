@@ -82,7 +82,6 @@ mod tests {
         let mut parser = Statement::new().unwrap();
         // max value for i64 is 2^63 -1 (or 9,223,372,036,854,775,807)
         let result = parser.parse_and_execute("[div(9223372036854775808, 2)]", &Context::new());
-        println!("{:?}", result);
         assert!(result.is_err());
     }
 }
