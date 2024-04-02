@@ -32,7 +32,7 @@ impl Function for Add {
                 return Err(DscError::Parser("Addition input overflow".to_string()));
             }
             let val1: i64 = NumCast::from(arg1).ok_or(DscError::Parser("Invalid input".to_string()))?;
-            let val2 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
+            let val2: i64 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
             if let Some(result) = val1.checked_add(val2) {
                 Ok(Value::Number(Number::from(result)))
             } else {
@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn overflow_input() {
         let mut parser = Statement::new().unwrap();
-        let result = parser.parse_and_execute("[add(9223372036854785808, 0)]", &Context::new());
+        let result = parser.parse_and_execute("[add(9223372036854775808, 0)]", &Context::new());
         println!("output {:?}", result);
         assert!(result.is_err());
     }

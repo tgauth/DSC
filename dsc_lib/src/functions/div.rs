@@ -32,7 +32,7 @@ impl Function for Div {
                 return Err(DscError::Parser("Division input overflow".to_string()));
             }
             let num: i64 = NumCast::from(arg1).ok_or(DscError::Parser("Invalid input".to_string()))?;
-            let div = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
+            let div: i64 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
             if let Some(value) = num.checked_div(div) {
                 Ok(Value::Number(Number::from(value)))
             } else {
@@ -81,7 +81,7 @@ mod tests {
     fn overflow_input() {
         let mut parser = Statement::new().unwrap();
         // max value for i64 is 2^63 -1 (or 9,223,372,036,854,775,807)
-        let result = parser.parse_and_execute("[div(9223372036854785808, 2)]", &Context::new());
+        let result = parser.parse_and_execute("[div(9223372036854775808, 2)]", &Context::new());
         println!("{:?}", result);
         assert!(result.is_err());
     }

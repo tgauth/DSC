@@ -32,7 +32,7 @@ impl Function for Mul {
                 return Err(DscError::Parser("Multiplication input overflow".to_string()));
             }
             let val1: i64 = NumCast::from(arg1).ok_or(DscError::Parser("Invalid input".to_string()))?;
-            let val2 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
+            let val2: i64 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
             if let Some(value) = val1.checked_mul(val2) {
                 Ok(Value::Number(Number::from(value)))
             } else {
@@ -75,14 +75,13 @@ mod tests {
         let mut parser = Statement::new().unwrap();
         // max value for i64 is 2^63 -1 (or 9,223,372,036,854,775,807)
         let result = parser.parse_and_execute("[mul(9223372036854775807, 2)]", &Context::new());
-        println!("result: {:?}", result);
         assert!(result.is_err());
     }
 
     #[test]
     fn overflow_input() {
         let mut parser = Statement::new().unwrap();
-        let result = parser.parse_and_execute("[mul(9223372036854785808, 2)]", &Context::new());
+        let result = parser.parse_and_execute("[mul(9223372036854775808, 2)]", &Context::new());
         assert!(result.is_err());
     }
 }

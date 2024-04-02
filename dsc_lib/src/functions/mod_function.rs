@@ -32,7 +32,7 @@ impl Function for Mod {
                 return Err(DscError::Parser("Mod input overflow".to_string()));
             }
             let val1: i64 = NumCast::from(arg1).ok_or(DscError::Parser("Invalid input".to_string()))?;
-            let val2 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
+            let val2: i64 = NumCast::from(arg2).ok_or(DscError::Parser("Invalid input".to_string()))?;
             if let Some(value) = val1.checked_rem(val2) {
                 Ok(Value::Number(Number::from(value)))
             } else {
@@ -81,7 +81,7 @@ mod tests {
     fn overflow_input() {
         let mut parser = Statement::new().unwrap();
         // max value for i64 is 2^63 -1 (or 9,223,372,036,854,775,807)
-        let result = parser.parse_and_execute("[mod(9223372036854785808, 2)]", &Context::new());
+        let result = parser.parse_and_execute("[mod(9223372036854775808, 2)]", &Context::new());
         assert!(result.is_err());
     }
 }
