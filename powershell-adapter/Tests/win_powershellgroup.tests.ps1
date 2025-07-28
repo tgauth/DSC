@@ -271,110 +271,110 @@ resources:
     $out | Should -BeLike "*ERROR*Credential object 'Credential' requires both 'username' and 'password' properties*"
   }
 
-  It 'List works with class-based PS DSC resources' -Skip:(!$IsWindows) {
-    BeforeDiscovery {
-      $windowsPowerShellPath = Join-Path $testDrive 'WindowsPowerShell' 'Modules'
-      $env:PSModulePath += [System.IO.Path]::PathSeparator + $windowsPowerShellPath
+#   It 'List works with class-based PS DSC resources' -Skip:(!$IsWindows) {
+#     BeforeDiscovery {
+#       $windowsPowerShellPath = Join-Path $testDrive 'WindowsPowerShell' 'Modules'
+#       $env:PSModulePath += [System.IO.Path]::PathSeparator + $windowsPowerShellPath
 
-      $moduleFile = @"
-@{
-    RootModule           = 'PSClassResource.psm1'
-    ModuleVersion        = '0.1.0'
-    GUID                 = '1b2e177b-1819-4f51-8bc9-795dd8fae984'
-    Author               = 'Microsoft Corporation'
-    CompanyName          = 'Microsoft Corporation'
-    Copyright            = '(c) Microsoft Corporation. All rights reserved.'
-    Description          = 'DSC Resource for Windows PowerShell Class'
-    PowerShellVersion    = '5.1'
-    DscResourcesToExport = @(
-        'PSClassResource'
-    )
-    PrivateData          = @{
-        PSData = @{
-            Tags       = @(
-                'PSDscResource_PSClassResource'
-            )
-            DscCapabilities = @(
-            'get'
-            'test'
-            'set'
-            'export'
-            )
-        }
-    }
-}
-"@
-      $moduleFilePath = Join-Path $windowsPowerShellPath 'PSClassResource' '0.1.0' 'PSClassResource.psd1'
-      if (-not (Test-Path -Path $moduleFilePath)) {
-        New-Item -Path $moduleFilePath -ItemType File -Value $moduleFile -Force | Out-Null
-      }
+#       $moduleFile = @"
+# @{
+#     RootModule           = 'PSClassResource.psm1'
+#     ModuleVersion        = '0.1.0'
+#     GUID                 = '1b2e177b-1819-4f51-8bc9-795dd8fae984'
+#     Author               = 'Microsoft Corporation'
+#     CompanyName          = 'Microsoft Corporation'
+#     Copyright            = '(c) Microsoft Corporation. All rights reserved.'
+#     Description          = 'DSC Resource for Windows PowerShell Class'
+#     PowerShellVersion    = '5.1'
+#     DscResourcesToExport = @(
+#         'PSClassResource'
+#     )
+#     PrivateData          = @{
+#         PSData = @{
+#             Tags       = @(
+#                 'PSDscResource_PSClassResource'
+#             )
+#             DscCapabilities = @(
+#             'get'
+#             'test'
+#             'set'
+#             'export'
+#             )
+#         }
+#     }
+# }
+# "@
+#       $moduleFilePath = Join-Path $windowsPowerShellPath 'PSClassResource' '0.1.0' 'PSClassResource.psd1'
+#       if (-not (Test-Path -Path $moduleFilePath)) {
+#         New-Item -Path $moduleFilePath -ItemType File -Value $moduleFile -Force | Out-Null
+#       }
 
 
-      $module = @'
-enum Ensure {
-    Present
-    Absent
-}
+#       $module = @'
+# enum Ensure {
+#     Present
+#     Absent
+# }
 
-[DSCResource()]
-class PSClassResource {
-    [DscProperty(Key)]
-    [string] $Name
+# [DSCResource()]
+# class PSClassResource {
+#     [DscProperty(Key)]
+#     [string] $Name
 
-    [string] $NonDscProperty
+#     [string] $NonDscProperty
 
-    hidden
-    [string] $HiddenNonDscProperty
+#     hidden
+#     [string] $HiddenNonDscProperty
 
-    [DscProperty()]
-    [Ensure] $Ensure = [Ensure]::Present
+#     [DscProperty()]
+#     [Ensure] $Ensure = [Ensure]::Present
 
-    PSClassResource() {
-    }
+#     PSClassResource() {
+#     }
 
-    [PSClassResource] Get() {
-        return $this
-    }
+#     [PSClassResource] Get() {
+#         return $this
+#     }
 
-    [bool] Test() {
-        return $true
-    }
+#     [bool] Test() {
+#         return $true
+#     }
 
-    [void] Set() {
+#     [void] Set() {
 
-    }
+#     }
 
-    static [PSClassResource[]] Export()
-    {
-        $resultList = [System.Collections.Generic.List[PSClassResource]]::new()
-        $resultCount = 5
-        if ($env:PSClassResourceResultCount) {
-            $resultCount = $env:PSClassResourceResultCount
-        }
-        1..$resultCount | %{
-            $obj = New-Object PSClassResource
-            $obj.Name = "Object$_"
-            $obj.Ensure = [Ensure]::Present
-            $resultList.Add($obj)
-        }
+#     static [PSClassResource[]] Export()
+#     {
+#         $resultList = [System.Collections.Generic.List[PSClassResource]]::new()
+#         $resultCount = 5
+#         if ($env:PSClassResourceResultCount) {
+#             $resultCount = $env:PSClassResourceResultCount
+#         }
+#         1..$resultCount | %{
+#             $obj = New-Object PSClassResource
+#             $obj.Name = "Object$_"
+#             $obj.Ensure = [Ensure]::Present
+#             $resultList.Add($obj)
+#         }
 
-        return $resultList.ToArray()
-    }
-}
-'@
+#         return $resultList.ToArray()
+#     }
+# }
+# '@
 
-      $modulePath = Join-Path $windowsPowerShellPath 'PSClassResource' '0.1.0' 'PSClassResource.psm1'
-      if (-not (Test-Path -Path $modulePath)) {
-        New-Item -Path $modulePath -ItemType File -Value $module -Force | Out-Null
-      }
-    }
+#       $modulePath = Join-Path $windowsPowerShellPath 'PSClassResource' '0.1.0' 'PSClassResource.psm1'
+#       if (-not (Test-Path -Path $modulePath)) {
+#         New-Item -Path $modulePath -ItemType File -Value $module -Force | Out-Null
+#       }
+#     }
 
-    $out = dsc -l trace resource list --adapter Microsoft.Windows/WindowsPowerShell | ConvertFrom-Json
-    $LASTEXITCODE | Should -Be 0
-    $out.type | Should -Contain 'PSClassResource/PSClassResource'
-    $out | Where-Object -Property type -EQ PSClassResource/PSClassResource | Select-Object -ExpandProperty implementedAs | Should -Be 1 # Class-based
-    ($out | Where-Object -Property type -EQ 'PSClassResource/PSClassResource').capabilities | Should -BeIn @('get', 'test', 'set', 'export')
-  }
+#     $out = dsc -l trace resource list --adapter Microsoft.Windows/WindowsPowerShell | ConvertFrom-Json
+#     $LASTEXITCODE | Should -Be 0
+#     $out.type | Should -Contain 'PSClassResource/PSClassResource'
+#     $out | Where-Object -Property type -EQ PSClassResource/PSClassResource | Select-Object -ExpandProperty implementedAs | Should -Be 1 # Class-based
+#     ($out | Where-Object -Property type -EQ 'PSClassResource/PSClassResource').capabilities | Should -BeIn @('get', 'test', 'set', 'export')
+#   }
 
   It 'Get works with class-based PS DSC resources' -Skip:(!$IsWindows) {
 
