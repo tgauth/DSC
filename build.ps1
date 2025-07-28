@@ -571,6 +571,13 @@ if ($Test) {
 
     try {
         Invoke-Pester -ErrorAction Stop
+        if ($LASTEXITCODE -ne 0) {
+            throw "Pester tests failed with exit code: $LASTEXITCODE"
+        }
+    } catch [System.Management.Automation.MethodException] {
+        throw "Pester had method exception error: $($_.Exception.Message)"
+    } catch [System.Exception] {
+        throw "Pester had .NET exception: $($_.Exception.Message)"
     } catch {
         throw "Pester had unexpected error: $($_.Exception.Message)"
     }
